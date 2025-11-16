@@ -1,20 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-from sqlalchemy import select, update
+from sqlalchemy import select, func, desc, update, text, and_
 
 from app.auth import get_current_seller
 from app.models.products import Product as ProductModel
 from app.models.categories import Category as CategoryModel
-from app.schemas import Product as ProductSchema, ProductCreate
+from app.schemas import Product as ProductSchema, ProductCreate, ProductList
 from app.models.users import User as UserModel
-from app.db_depends import get_db, get_async_db
+from app.db_depends import get_async_db
 
 # Создаём маршрутизатор для товаров
 router = APIRouter(
     prefix="/products",
     tags=["products"],
 )
+
+
+
+from sqlalchemy import select, func, desc, and_
 
 
 @router.get("/", response_model=list[ProductSchema])
@@ -32,6 +36,26 @@ async def create_product(
     product: ProductCreate,
     db: AsyncSession = Depends(get_async_db),
     current_user: UserModel = Depends(get_current_seller)
+):
+    """
+    Создаёт новый товар, привязанный к текущему продавцу (только для 'seller').
+    """
+    category_result = await db.scalars(
+        select(CategoryModel).where(CategoryModel.id == product.category_id, CategoryModel.is_active == True)
+    )
+    if not category_result.first():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Category not found or inactive")
+    db_product = ProductModel(**product.model_dump(), seller_id=current_user.id)
+    db.add(db_product)
+    await db.commit()
+    return db_product
+
+
+@router.post("/", response_model=ProductSchema, status_code=status.HTTP_201_CREATED)
+async def create_product(
+        product: ProductCreate,
+        db: AsyncSession = Depends(get_async_db),
+        current_user: UserModel = Depends(get_current_seller)
 ):
     """
     Создаёт новый товар, привязанный к текущему продавцу (только для 'seller').
@@ -81,14 +105,12 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_async_db))
     return product
 
 
-
-
 @router.put("/{product_id}", response_model=ProductSchema)
 async def update_product(
-    product_id: int,
-    product: ProductCreate,
-    db: AsyncSession = Depends(get_async_db),
-    current_user: UserModel = Depends(get_current_seller)
+        product_id: int,
+        product: ProductCreate,
+        db: AsyncSession = Depends(get_async_db),
+        current_user: UserModel = Depends(get_current_seller)
 ):
     """
     Обновляет товар, если он принадлежит текущему продавцу (только для 'seller').
@@ -111,11 +133,12 @@ async def update_product(
     await db.refresh(db_product)  # Для консистентности данных
     return db_product
 
+
 @router.delete("/{product_id}", response_model=ProductSchema)
 async def delete_product(
-    product_id: int,
-    db: AsyncSession = Depends(get_async_db),
-    current_user: UserModel = Depends(get_current_seller)
+        product_id: int,
+        db: AsyncSession = Depends(get_async_db),
+        current_user: UserModel = Depends(get_current_seller)
 ):
     """
     Выполняет мягкое удаление товара, если он принадлежит текущему продавцу (только для 'seller').
@@ -134,5 +157,3 @@ async def delete_product(
     await db.commit()
     await db.refresh(product)  # Для возврата is_active = False
     return product
-
-

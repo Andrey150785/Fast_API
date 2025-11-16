@@ -57,6 +57,18 @@ class Product(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ProductList(BaseModel):
+    """
+    Список пагинации для товаров.
+    """
+    items: list[Product] = Field(description="Товары для текущей страницы")
+    total: int = Field(ge=0, description="Общее количество товаров")
+    page: int = Field(ge=1, description="Номер текущей страницы")
+    page_size: int = Field(ge=1, description="Количество элементов на странице")
+
+    model_config = ConfigDict(from_attributes=True)  # Для чтения из ORM-объектов
+
+
 class UserCreate(BaseModel):
     email: EmailStr = Field(..., description="Email пользователя")
     password: str = Field(..., min_length=8, description="Пароль (минимум 8 символов)")
@@ -69,4 +81,23 @@ class User(BaseModel):
     email: EmailStr
     is_active: bool
     role: str
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ReviewCreate(BaseModel):
+    product_id: int
+    comment: str
+    comment_date: str
+    grade: int
+    user_id: int
+
+
+class ReviewSchema(BaseModel):
+    id: int
+    user_id: int
+    product_id: int
+    comment: str
+    comment_date: str
+    grade: int
+    is_active: bool
     model_config = ConfigDict(from_attributes=True)

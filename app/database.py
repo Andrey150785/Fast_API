@@ -10,13 +10,13 @@ engine = create_engine(DATABASE_URL, echo=True)
 # Настраиваем фабрику сеансов
 SessionLocal = sessionmaker(bind=engine)
 
+
 # --------------- Асинхронное подключение к PostgreSQL -------------------------
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 
-# Строка подключения для SQLite
-DATABASE_URL = "postgresql+asyncpg://ecommerce_user:xxxxxxxx@localhost:5432/ecommerce_db"
+DATABASE_URL = "postgresql+asyncpg://ecommerce_user:150785@localhost:5433/ecommerce_db_2"
 
 # Создаём Engine
 async_engine = create_async_engine(DATABASE_URL, echo=True)

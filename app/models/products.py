@@ -1,6 +1,8 @@
-from sqlalchemy import String, Boolean, Float, Integer
-from sqlalchemy.orm import Mapped, mapped_column, relationship  # New
-from sqlalchemy import ForeignKey  # New
+from decimal import Decimal
+from sqlalchemy import String, Boolean, Integer, Numeric, Computed, Index, Float
+from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey
 
 from app.database import Base
 
