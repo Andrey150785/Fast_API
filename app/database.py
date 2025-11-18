@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+from sqlalchemy.dialects.postgresql import asyncpg
 from sqlalchemy.orm import sessionmaker
 
 # Строка подключения для SQLite
