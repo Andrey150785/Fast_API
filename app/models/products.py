@@ -22,3 +22,6 @@ class Product(Base):
 
     category: Mapped["Category"] = relationship("Category", back_populates="products")
     seller = relationship("User", back_populates="products")  # New
+    cart_items: Mapped[list["CartItem"]] = relationship("CartItem", back_populates="product",
+                                                        cascade="all, delete-orphan")
+    order_items: Mapped[list["OrderItem"]] = relationship("OrderItem", back_populates="product")
